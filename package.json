@@ -1,0 +1,32 @@
+{
+  "name": "breakout",
+  "version": "1.0",
+  "description": "A 3d breakout game written with three.js.",
+  "main": "src/index.js",
+  "repository": "superguigui/threejs-starter-kit",
+  "scripts": {
+    "start": "budo src/index.js --open --live -- -t babelify -t glslify",
+    "build": "browserify -v -d src/index.js -t babelify -t glslify | uglifyjs -nm > index.js"
+  },
+  "devDependencies": {
+    "babel-eslint": "^6.0.4",
+    "babel-preset-env": "^1.6.1",
+    "babelify": "^7.3.0",
+    "browserify": "^13.1.1",
+    "budo": "^8.3.0",
+    "uglify-js": "^2.7.5"
+  },
+  "dependencies": {
+    "@superguigui/wagner": "*",
+    "brindille-resize": "^0.1.3",
+    "clamp": "^1.0.1",
+    "glslify": "^5.0.2",
+    "guigui": "github:superguigui/guigui#dev",
+    "mouse-event-offset": "^3.0.2",
+    "mouse-wheel": "^1.1.0",
+    "raf-loop": "^1.1.3",
+    "three": "*"
+  },
+  "author": "Leonard Kerr",
+  "license": "BSD-2-Clause"
+}
