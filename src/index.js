@@ -38,6 +38,8 @@ const SETTINGS = {
 const ROWS = 4
 const COLUMNS = 6
 const PADDLESPEED = 0.5
+const BALLSPEED = 0.04
+var ballVelocity = new Vector3(0, 0, 0)
 
 /* Init renderer and canvas */
 const container = document.body
@@ -150,7 +152,8 @@ bricks.castShadow = true;
 
 // Model for ball to play
 const ball = new Sphere()
-ball.castShadow = true;
+ball.position.x = -2.5
+ball.castShadow = true
 
 
 //Make Ammo Models
@@ -203,9 +206,13 @@ var rightBox = new Box3().setFromObject(walls.getObjectByName('right'))
 var upBox = new Box3().setFromObject(walls.getObjectByName('up'))
 var downBox = new Box3().setFromObject(walls.getObjectByName('down'))
 var bricksBox = []
-bricks.children.map((currElement, index) => {
+bricks.children.forEach((currElement, index) => {
   bricksBox.push(new Box3().setFromObject(currElement))
 })
+
+var playerCenter = playerBox.getCenter()
+var ballCenter = ballBox.getCenter()
+var brickCenter = bricksBox[0].getCenter()
 
 /* -------------------------------------------------------------------------------- */
 
@@ -228,6 +235,22 @@ function onKeyDown() {
   if (!playerBox.intersectsBox(rightBox) && (event.keyCode == 68 || event.keyCode == 39)) {
     player.position.x += PADDLESPEED
   }
+
+  // Space = 32 
+  if (event.keyCode == 32 && ballVelocity.length() == 0) {
+    ballVelocity.y = -1
+    ballVelocity.x = 1
+    ballVelocity.setLength(BALLSPEED)
+  }
+}
+
+function reset() {
+  player.position.x = 0
+  ball.position.x = -2.5
+  ball.position.y = 0
+  ballVelocity.setLength(0)
+
+
 }
 
 /**
@@ -237,12 +260,56 @@ function render(dt) {
 
   //Update Math
   playerBox = new Box3().setFromObject(player)
-  console.log(playerBox)
   ballBox = new Box3().setFromObject(ball)
   bricksBox = []
-  bricks.children.map((currElement, index) => {
+  bricks.children.forEach((currElement, index) => {
+    currElement.name = index
     bricksBox.push(new Box3().setFromObject(currElement))
   })
+
+  //Update ball velocity
+
+  // If this collides with the paddle, then reverse y
+  if (ballBox.intersectsBox(playerBox)) {
+    playerCenter = playerBox.getCenter()
+    ballCenter = ballBox.getCenter()
+    ballVelocity = ballCenter.sub(playerCenter)
+    ballVelocity.setLength(BALLSPEED)
+  }
+
+  // If it collides with any of the bricks, remove the brick and reverse y
+  bricks.children.forEach((currElement, index) => {
+    i = currElement.name
+    if (bricksBox[i].intersectsBox(ballBox)) {
+      brickCenter = bricksBox[i].getCenter()
+      ballCenter = ballBox.getCenter()
+      ballVelocity = ballCenter.sub(brickCenter)
+      ballVelocity.setLength(BALLSPEED)
+      bricks.remove(bricks.getObjectByName(i))
+    }
+  })
+
+  // if it collides with a side wall, reverse x, otherwise reverse y
+  if (ballBox.intersectsBox(leftBox) || ballBox.intersectsBox(rightBox)) {
+    ballVelocity.x *= -1
+  }
+
+  if (ballBox.intersectsBox(upBox)) {
+    ballVelocity.y *= -1
+  }
+
+  if (ballBox.intersectsBox(downBox)) {
+    reset()
+  }
+
+
+
+  // If this collides with any of the bricks, remove the brick and apply opposite velocity
+
+  //Update positions
+  ball.translateX(ballVelocity.x)
+  ball.translateY(ballVelocity.y)
+  ball.translateZ(ballVelocity.z)
 
   controls.update()
   player.visible = false
