@@ -1,17 +1,18 @@
 import {
     Object3D,
-    SphereBufferGeometry,
+    PlaneBufferGeometry,
     MeshStandardMaterial,
     Mesh
 } from 'three'
 
-export default class Sphere extends Object3D {
+export default class Plane extends Object3D {
     constructor() {
         super()
 
-        const geometry = new SphereBufferGeometry(0.15, 32, 32);
+        const geometry = new PlaneBufferGeometry(20, 10, 32)
         const material = new MeshStandardMaterial({
-            color: 0x515151
+            color: 0xffffff,
+            roughness: 0.6            
         })
         const mesh = new Mesh(geometry, material)
 
