@@ -31,15 +31,19 @@ const SETTINGS = {
   ball: true,
   background: true,
   bricks: true,
-  walls: true
+  walls: true,
+  ammo: true
 }
 
 /* Constants */
 const ROWS = 4
 const COLUMNS = 6
-const PADDLESPEED = 0.5
+const INITAMMO = 3
+const PADDLESPEED = 0.04
 const BALLSPEED = 0.04
 var ballVelocity = new Vector3(0, 0, 0)
+var playerVelocity = new Vector3(0, 0, 0)
+var ammoCount = INITAMMO
 
 /* Init renderer and canvas */
 const container = document.body
@@ -160,9 +164,11 @@ ball.castShadow = true
 const ammoMat = new Matrix4()
 ammoMat.makeScale(0.5, 0.5, 0.5)
 const ammo = new Group()
-ammo.add(new Sphere())
-ammo.add(new Sphere())
-ammo.add(new Sphere())
+for (var i = 0; i < ammoCount; i++) {
+  var shot = new Sphere()
+  shot.name = i
+  ammo.add(shot)
+}
 ammo.children.map((currElement, index) => {
   currElement.applyMatrix(ammoMat);
   currElement.position.x += index * 0.2
@@ -186,6 +192,8 @@ scene.add(walls)
 /* Various event listeners */
 resize.addListener(onResize)
 document.addEventListener('keydown', onKeyDown)
+document.addEventListener('keyup', onKeyUp)
+
 
 /* create and launch main loop */
 const engine = loop(render)
@@ -197,6 +205,7 @@ gui.add(SETTINGS, 'ball')
 gui.add(SETTINGS, 'bricks')
 gui.add(SETTINGS, 'background')
 gui.add(SETTINGS, 'walls')
+gui.add(SETTINGS, 'ammo')
 
 /* setup math for physics */
 var playerBox = new Box3().setFromObject(player)
@@ -226,14 +235,20 @@ function onResize() {
   composer.setSize(resize.width, resize.height)
 }
 
+function onKeyUp() {
+  if(event.keyCode == 65 || event.keyCode == 37 || event.keyCode == 68 || event.keyCode == 39){
+    playerVelocity.setLength(0)
+  }
+}
+
 function onKeyDown() {
   //A = 65, D = 68, <- = 37, -> = 39
   if (!playerBox.intersectsBox(leftBox) && (event.keyCode == 65 || event.keyCode == 37)) {
-    player.position.x -= PADDLESPEED
+    playerVelocity.x = -PADDLESPEED
   }
 
   if (!playerBox.intersectsBox(rightBox) && (event.keyCode == 68 || event.keyCode == 39)) {
-    player.position.x += PADDLESPEED
+    playerVelocity.x = PADDLESPEED
   }
 
   // Space = 32 
@@ -244,13 +259,46 @@ function onKeyDown() {
   }
 }
 
+function hardReset() {
+  // RESET AMMO
+  ammoCount = INITAMMO
+  for (var i = 0; i < ammoCount; i++) {
+    var shot = new Sphere()
+    shot.name = i
+    ammo.add(shot)
+  }
+  ammo.children.map((currElement, index) => {
+    currElement.applyMatrix(ammoMat);
+    currElement.position.x += index * 0.2
+  })
+
+  // RESET BRICKS
+  for (var i = bricks.children.length - 1; i >= 0; i--) {
+    bricks.remove(bricks.children[i])
+  }
+  for (var i = 0; i < ROWS * COLUMNS; i++) {
+    var brick = new Cube()
+    brick.name = i
+    bricks.add(brick)
+  }
+  bricks.children.map((currElement, index) => {
+    currElement.applyMatrix(playerMat);
+    currElement.position.y -= Math.floor(index / COLUMNS) * 0.8
+    currElement.position.x += index % COLUMNS * 2.5
+  })
+}
+
 function reset() {
   player.position.x = 0
   ball.position.x = -2.5
   ball.position.y = 0
+  ammoCount -= 1
+  ammo.remove(ammo.getObjectByName(ammoCount))
+  if (ammoCount == 0) {
+    hardReset()
+  }
   ballVelocity.setLength(0)
-
-
+  playerVelocity.setLength(0)
 }
 
 /**
@@ -309,7 +357,8 @@ function render(dt) {
   //Update positions
   ball.translateX(ballVelocity.x)
   ball.translateY(ballVelocity.y)
-  ball.translateZ(ballVelocity.z)
+
+  player.translateX(playerVelocity.x)
 
   controls.update()
   player.visible = false
@@ -317,6 +366,7 @@ function render(dt) {
   bricks.visible = false
   background.visible = false
   walls.visible = false
+  ammo.visible = false
 
 
   if (SETTINGS.player) {
@@ -337,6 +387,10 @@ function render(dt) {
 
   if (SETTINGS.walls) {
     walls.visible = true
+  }
+
+  if (SETTINGS.ammo) {
+    ammo.visible = true
   }
 
   renderer.render(scene, camera)
