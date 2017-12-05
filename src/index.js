@@ -8,7 +8,8 @@ import {
   Matrix4,
   Group,
   PCFSoftShadowMap,
-  LightShadow
+  LightShadow,
+  Box3
 } from 'three'
 import loop from 'raf-loop'
 import WAGNER from '@superguigui/wagner'
@@ -36,6 +37,7 @@ const SETTINGS = {
 /* Constants */
 const ROWS = 4
 const COLUMNS = 6
+const PADDLESPEED = 0.5
 
 /* Init renderer and canvas */
 const container = document.body
@@ -68,8 +70,8 @@ const ambLight = new AmbientLight(0x444444)
 scene.add(ambLight)
 
 const frontLight = new SpotLight(0xffffff)
-frontLight.position.set( 0, 1500, 1000 );
-frontLight.target.position.set( 0, 0, 0 );
+frontLight.position.set(0, 1500, 1000);
+frontLight.target.position.set(0, 0, 0);
 frontLight.castShadow = true
 frontLight.shadow.mapSize.width = 1024
 frontLight.shadow.mapSize.height = 1024
@@ -83,6 +85,7 @@ scene.add(frontLight)
 // Background for Field
 const background = new Plane()
 background.receiveShadow = true;
+background.position.z = -0.15
 
 // Bounding walls
 const walls = new Group()
@@ -91,25 +94,29 @@ const rightWall = new Cube()
 const upWall = new Cube()
 const downWall = new Cube()
 
-leftWall.applyMatrix(new Matrix4().makeScale(1, 20, 1))
-leftWall.position.set(-8, 0, 0)
+leftWall.applyMatrix(new Matrix4().makeScale(4, 20, 1))
+leftWall.position.set(-9, 0, 0)
 leftWall.children[0].material.color.set(0xff4c81)
 leftWall.castShadow = true
+leftWall.name = 'left'
 
-rightWall.applyMatrix(new Matrix4().makeScale(1, 20, 1))
-rightWall.position.set(8, 0, 0)
+rightWall.applyMatrix(new Matrix4().makeScale(4, 20, 1))
+rightWall.position.set(9, 0, 0)
 rightWall.children[0].material.color.set(0xff4c81)
 rightWall.castShadow = true
+rightWall.name = 'right'
 
-upWall.applyMatrix(new Matrix4().makeScale(40, 1, 1))
-upWall.position.set(0, 4.5, 0)
+upWall.applyMatrix(new Matrix4().makeScale(40, 1.5, 1))
+upWall.position.set(0, 4.7, 0)
 upWall.children[0].material.color.set(0xff4c81)
 upWall.castShadow = true
+upWall.name = 'up'
 
-downWall.applyMatrix(new Matrix4().makeScale(40, 2, 1))
-downWall.position.set(0, -4.1, 0)
+downWall.applyMatrix(new Matrix4().makeScale(40, 3, 1))
+downWall.position.set(0, -4.5, 0)
 downWall.children[0].material.color.set(0xff4c81)
 downWall.castShadow = true
+downWall.name = 'down'
 
 walls.add(leftWall)
 walls.add(rightWall)
@@ -128,7 +135,9 @@ player.castShadow = true;
 // Bricks
 const bricks = new Group()
 for (var i = 0; i < ROWS * COLUMNS; i++) {
-  bricks.add(new Cube())
+  var brick = new Cube()
+  brick.name = i
+  bricks.add(brick)
 }
 bricks.children.map((currElement, index) => {
   currElement.applyMatrix(playerMat);
@@ -161,7 +170,6 @@ ammo.position.z = 1
 ammo.castShadow = true;
 
 
-background.position.z = -0.15
 
 scene.add(player)
 scene.add(ball)
@@ -174,6 +182,7 @@ scene.add(walls)
 
 /* Various event listeners */
 resize.addListener(onResize)
+document.addEventListener('keydown', onKeyDown)
 
 /* create and launch main loop */
 const engine = loop(render)
@@ -185,6 +194,18 @@ gui.add(SETTINGS, 'ball')
 gui.add(SETTINGS, 'bricks')
 gui.add(SETTINGS, 'background')
 gui.add(SETTINGS, 'walls')
+
+/* setup math for physics */
+var playerBox = new Box3().setFromObject(player)
+var ballBox = new Box3().setFromObject(ball)
+var leftBox = new Box3().setFromObject(walls.getObjectByName('left'))
+var rightBox = new Box3().setFromObject(walls.getObjectByName('right'))
+var upBox = new Box3().setFromObject(walls.getObjectByName('up'))
+var downBox = new Box3().setFromObject(walls.getObjectByName('down'))
+var bricksBox = []
+bricks.children.map((currElement, index) => {
+  bricksBox.push(new Box3().setFromObject(currElement))
+})
 
 /* -------------------------------------------------------------------------------- */
 
@@ -198,10 +219,30 @@ function onResize() {
   composer.setSize(resize.width, resize.height)
 }
 
+function onKeyDown() {
+  //A = 65, D = 68, <- = 37, -> = 39
+  if (!playerBox.intersectsBox(leftBox) && (event.keyCode == 65 || event.keyCode == 37)) {
+    player.position.x -= PADDLESPEED
+  }
+
+  if (!playerBox.intersectsBox(rightBox) && (event.keyCode == 68 || event.keyCode == 39)) {
+    player.position.x += PADDLESPEED
+  }
+}
+
 /**
   Render loop
 */
 function render(dt) {
+
+  //Update Math
+  playerBox = new Box3().setFromObject(player)
+  console.log(playerBox)
+  ballBox = new Box3().setFromObject(ball)
+  bricksBox = []
+  bricks.children.map((currElement, index) => {
+    bricksBox.push(new Box3().setFromObject(currElement))
+  })
 
   controls.update()
   player.visible = false
