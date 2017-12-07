@@ -271,6 +271,32 @@ function onKeyDown() {
   }
 }
 
+// When no more bricks remain
+function nextLevel() {
+  player.position.x = 0
+  ball.position.x = -2.5
+  ball.position.y = 0
+
+  // RESET BRICKS
+  for (var i = bricks.children.length - 1; i >= 0; i--) {
+    bricks.remove(bricks.children[i])
+  }
+  for (var i = 0; i < ROWS * COLUMNS; i++) {
+    var brick = new Cube()
+    brick.name = i
+    bricks.add(brick)
+  }
+  bricks.children.map((currElement, index) => {
+    currElement.applyMatrix(playerMat);
+    currElement.position.y -= Math.floor(index / COLUMNS) * 0.8
+    currElement.position.x += index % COLUMNS * 2.5
+  })
+
+  ballVelocity.setLength(0)
+  playerVelocity.setLength(0)
+}
+
+// When you lose all three balls
 function hardReset() {
 
   // RESET AMMO
@@ -312,6 +338,7 @@ function updateScore() {
   scene.add(scoreText)
 }
 
+// When you lose one ball
 function reset() {
   player.position.x = 0
   ball.position.x = -2.5
@@ -329,6 +356,10 @@ function reset() {
   Render loop
 */
 function render(dt) {
+
+  if(bricks.children.length == 0){
+    nextLevel()
+  }
 
   //Update Math
   playerBox = new Box3().setFromObject(player)
