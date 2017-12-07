@@ -61,7 +61,7 @@ const container = document.body
 const renderer = new WebGLRenderer({
   antialias: true
 })
-renderer.setClearColor(0x323232)
+renderer.setClearColor(0x3DCCA2)
 renderer.shadowMap.enabled = true
 renderer.shadowMap.type = PCFSoftShadowMap
 container.style.overflow = 'hidden'
