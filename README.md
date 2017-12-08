@@ -19,10 +19,18 @@ Starter Kit Used for Reference: https://github.com/superguigui/threejs-starter-k
 * Design and implement 3D Interactive menu at the start of the game
 * ~~Allow for several camera viewing options to be used for the game~~
 
+
+**Public Info**
+* Description: 3D rendition of the classic breakout arcade game. To begin, press space and use the arrow keys to move the paddle and hit the ball into the bricks. Use mouse to change perspective of camera.
+* Thumbnail: A thumbnail image is located in the home directory, 'thumbnail.png'.
+* Video: https://youtu.be/vLkXQQasRJs
+
+
+
 ### Controls
 * Left Arrow Key or A - Move Paddle Left
 * Right Arrow Key or D - Move Paddle Right
 * Space - Start Round
-* Mouse - Left click in the view port and move mouse to 'orbit' the scene
+* Mouse - Left click in the view port and move mouse to 'orbit' the scene, scroll wheel to zoom
 
 
