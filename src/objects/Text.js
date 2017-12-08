@@ -13,7 +13,7 @@ export default class Text extends Object3D {
         var loader = new FontLoader()
 
         var self = this
-        loader.load('/fonts/Telegrama_Raw.json', function (font) {
+        loader.load('https://raw.githubusercontent.com/leonardwkerr/breakout/master/fonts/Telegrama_Raw.json', function (font) {
 
             var geometry = new TextGeometry(text, {
                 font: font,
