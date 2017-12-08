@@ -23,7 +23,7 @@ Starter Kit Used for Reference: https://github.com/superguigui/threejs-starter-k
 **Public Info**
 * Description: 3D rendition of the classic breakout arcade game. To begin, press space and use the arrow keys to move the paddle and hit the ball into the bricks. Use mouse to change perspective of camera.
 * Thumbnail: A thumbnail image is located in the home directory, 'thumbnail.png'.
-* Video: https://youtu.be/vLkXQQasRJs
+* Video: https://youtu.be/vLkXQQasRJs or 'breakout.wmv' in the home directory
 
 
 
